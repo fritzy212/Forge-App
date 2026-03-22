@@ -1347,7 +1347,7 @@ async function callClaude(system, userMsg, maxTokens) {
     promptApiKey();
     throw new Error('No API key set. Please enter your Anthropic API key.');
   }
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+  const resp = await fetch('https://forge-proxy.fritzy212.workers.dev', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
