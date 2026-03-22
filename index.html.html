@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORGE — AI Program Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #18181c;
+    --surface2: #222228;
+    --surface3: #2c2c34;
+    --accent: #e8ff47;
+    --accent2: #47ffe8;
+    --text: #f0f0ee;
+    --muted: #888890;
+    --border: rgba(255,255,255,0.08);
+    --danger: #ff4747;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  .app { max-width: 680px; margin: 0 auto; padding: 0 16px 80px; }
+
+  /* HEADER */
+  .header {
+    padding: 32px 0 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .tagline { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* STEP INDICATOR */
+  .steps {
+    display: flex; gap: 6px; margin-bottom: 28px;
+  }
+  .step-dot {
+    height: 3px; flex: 1; background: var(--surface3);
+    border-radius: 2px; transition: background 0.3s;
+  }
+  .step-dot.active { background: var(--accent); }
+  .step-dot.done { background: var(--accent2); }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.visible { display: block; }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .section-sub {
+    font-size: 13px; color: var(--muted); margin-bottom: 24px;
+  }
+
+  /* FORM ELEMENTS */
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type=text]:focus, input[type=number]:focus, select:focus, textarea:focus {
+    border-color: rgba(232,255,71,0.4);
+  }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  /* TOGGLE BUTTONS */
+  .toggle-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .toggle-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 9px 16px;
+    border-radius: 40px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-weight: 400;
+  }
+  .toggle-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+  .toggle-btn.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0d0d0f;
+    font-weight: 600;
+  }
+
+  /* GOAL CARDS */
+  .goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .goal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .goal-card:hover { border-color: rgba(255,255,255,0.15); }
+  .goal-card.selected {
+    border-color: var(--accent);
+    background: rgba(232,255,71,0.06);
+  }
+  .goal-card .icon { font-size: 22px; margin-bottom: 8px; }
+  .goal-card .goal-name { font-weight: 600; font-size: 14px; color: var(--text); }
+  .goal-card .goal-desc { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* EQUIPMENT GRID */
+  .equip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .equip-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--muted);
+  }
+  .equip-item:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+  .equip-item.selected { color: var(--text); border-color: var(--accent2); background: rgba(71,255,232,0.05); }
+  .equip-item .check {
+    width: 16px; height: 16px; border-radius: 4px;
+    border: 1.5px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; transition: all 0.2s;
+  }
+  .equip-item.selected .check {
+    background: var(--accent2); border-color: var(--accent2); color: #0d0d0f;
+  }
+
+  /* UNIT TOGGLE */
+  .unit-toggle {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .unit-opt {
+    padding: 5px 16px;
+    border-radius: 40px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .unit-opt.selected { background: var(--accent); color: #0d0d0f; font-weight: 600; }
+
+  /* NAV BUTTONS */
+  .nav { display: flex; gap: 10px; margin-top: 28px; }
+  .btn-primary {
+    flex: 1;
+    background: var(--accent);
+    color: #0d0d0f;
+    border: none;
+    padding: 14px 24px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .btn-primary:hover { background: #d4eb3e; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { background: var(--surface3); color: var(--muted); transform: none; cursor: not-allowed; }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 14px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: var(--surface2); }
+
+  /* GENERATING */
+  .generating {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .gen-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 6px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .gen-status { color: var(--muted); font-size: 14px; margin-top: 12px; }
+  .pulse-bar {
+    width: 120px; height: 3px;
+    background: var(--surface3);
+    border-radius: 2px;
+    margin: 16px auto 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .pulse-fill {
+    position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { to { left: 100%; } }
+
+  /* PROGRAM VIEW */
+  .program-header {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+  .program-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .program-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .meta-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .meta-pill span { color: var(--text); font-weight: 500; }
+
+  /* WEEK TABS */
+  .week-tabs {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .week-tab {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 40px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .week-tab:hover { color: var(--text); }
+  .week-tab.active { background: var(--accent); border-color: var(--accent); color: #0d0d0f; font-weight: 600; }
+  .week-tab.deload { border-color: rgba(71,255,232,0.3); color: var(--accent2) !important; }
+  .week-tab.deload.active { background: var(--accent2); border-color: var(--accent2); color: #0d0d0f !important; }
+
+  /* DAY CARD */
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .day-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .day-title { font-weight: 600; font-size: 14px; }
+  .day-type { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .day-toggle { color: var(--muted); font-size: 18px; transition: transform 0.2s; }
+  .day-toggle.open { transform: rotate(180deg); }
+  .day-body { display: none; padding: 0 16px 16px; }
+  .day-body.open { display: block; }
+
+  /* EXERCISE ROW */
+  .exercise-row {
+    display: flex; align-items: flex-start;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .exercise-row:last-child { border-bottom: none; }
+  .ex-num {
+    font-size: 11px; color: var(--muted);
+    width: 20px; flex-shrink: 0; padding-top: 2px;
+    font-weight: 500;
+  }
+  .ex-info { flex: 1; }
+  .ex-name { font-weight: 500; font-size: 14px; color: var(--text); }
+  .ex-detail { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .ex-weight {
+    font-size: 12px; color: var(--accent);
+    font-weight: 600; flex-shrink: 0;
+    background: rgba(232,255,71,0.08);
+    padding: 3px 8px; border-radius: 4px;
+    align-self: center;
+  }
+  .ex-explain-btn {
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 13px; padding: 4px 6px;
+    border-radius: 4px; flex-shrink: 0;
+    font-family: 'DM Sans', sans-serif;
+    transition: color 0.2s;
+    align-self: center;
+  }
+  .ex-explain-btn:hover { color: var(--accent2); }
+
+  /* EXPLAINER MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%; max-width: 680px;
+    max-height: 80vh; overflow-y: auto;
+    border: 1px solid var(--border);
+  }
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .modal-section { margin-bottom: 16px; }
+  .modal-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+  }
+  .modal-text { font-size: 14px; line-height: 1.7; color: var(--text); }
+  .cue-list { list-style: none; }
+  .cue-list li {
+    padding: 6px 0;
+    padding-left: 16px;
+    position: relative;
+    font-size: 14px; color: var(--text); line-height: 1.6;
+    border-bottom: 1px solid var(--border);
+  }
+  .cue-list li:last-child { border-bottom: none; }
+  .cue-list li::before {
+    content: '→';
+    position: absolute; left: 0;
+    color: var(--accent2);
+  }
+  .visual-block {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 16px;
+    font-family: monospace;
+    white-space: pre-wrap;
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 20px;
+    background: var(--surface2); border: none;
+    color: var(--muted); font-size: 20px;
+    width: 32px; height: 32px;
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  /* PROGRAM OVERVIEW */
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+  }
+  .stat-label { font-size: 11px; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--accent); margin-top: 4px; }
+  .stat-sub { font-size: 12px; color: var(--muted); }
+
+  /* REST DAY */
+  .rest-day {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+    color: var(--muted); font-size: 14px;
+  }
+
+  /* ERROR */
+  .error-box {
+    background: rgba(255,71,71,0.08);
+    border: 1px solid rgba(255,71,71,0.3);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    color: #ff8080;
+    font-size: 14px;
+    margin-top: 12px;
+  }
+
+  /* DELOAD BADGE */
+  .deload-badge {
+    display: inline-block;
+    background: rgba(71,255,232,0.1);
+    border: 1px solid rgba(71,255,232,0.3);
+    color: var(--accent2);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    font-weight: 500;
+    vertical-align: middle;
+  }
+
+  /* RESET BTN */
+  .btn-ghost {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  .streamer {
+    font-size: 14px; color: var(--text);
+    line-height: 1.7; white-space: pre-wrap;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 16px; margin-top: 12px;
+    max-height: 300px; overflow-y: auto;
+  }
+
+  /* GYM MODE */
+  .gym-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg); z-index: 200; overflow-y: auto;
+  }
+  .gym-overlay.open { display: block; }
+  .gym-header {
+    position: sticky; top: 0; background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px; display: flex;
+    align-items: center; justify-content: space-between;
+    z-index: 10;
+  }
+  .gym-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--accent); }
+  .gym-body { padding: 16px; max-width: 680px; margin: 0 auto; padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+  .gym-ex {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 12px; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .gym-ex.done { border-color: rgba(71,255,232,0.4); }
+  .gym-ex-header {
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .gym-ex-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--muted); flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .gym-ex.done .gym-ex-num { background: var(--accent2); border-color: var(--accent2); color: #0d0d0f; }
+  .gym-ex-name { font-weight: 600; font-size: 15px; flex: 1; }
+  .gym-ex-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .gym-sets { padding: 0 16px 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .set-btn {
+    width: 52px; height: 52px; border-radius: var(--radius-sm);
+    background: var(--surface2); border: 1.5px solid var(--border);
+    color: var(--muted); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; font-family: 'DM Sans', sans-serif;
+  }
+  .set-btn:active { transform: scale(0.94); }
+  .set-btn.completed { background: var(--accent); border-color: var(--accent); color: #0d0d0f; }
+  .set-btn .set-label { font-size: 10px; font-weight: 400; opacity: 0.7; }
+  /* SWAP MODAL */
+  .swap-modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%; max-width: 680px;
+    max-height: 85vh; overflow-y: auto;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .swapped-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(71,255,232,0.08); border: 1px solid rgba(71,255,232,0.25);
+    color: var(--accent2); font-size: 11px; padding: 2px 7px;
+    border-radius: 4px; font-weight: 500; vertical-align: middle; margin-left: 6px;
+  }
+  .rest-timer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 14px 20px; display: none;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+    align-items: center; justify-content: space-between; gap: 12px;
+    z-index: 300;
+  }
+  .rest-timer.active { display: flex; }
+  .timer-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  .timer-count { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px; color: var(--accent); line-height: 1; }
+  .timer-skip { background: none; border: 1px solid var(--border); color: var(--muted); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  /* RESUME BANNER */
+  .resume-banner {
+    background: var(--surface); border: 1px solid rgba(232,255,71,0.2);
+    border-radius: var(--radius); padding: 20px;
+    margin-bottom: 20px;
+  }
+  .resume-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--accent); margin-bottom: 6px; }
+  .resume-meta { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  @media (max-width: 480px) {
+    .row, .row3, .goal-grid, .equip-grid, .overview-grid { grid-template-columns: 1fr; }
+    .logo { font-size: 28px; }
+    .set-btn { width: 56px; height: 56px; }
+    /* Larger tap targets for explain/swap buttons in gym mode */
+    .ex-explain-btn { padding: 8px 10px; font-size: 15px; }
+    /* App bottom padding for iPhone home bar */
+    .app { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    /* Nav buttons full width on small screens */
+    .nav { flex-direction: column; }
+    .btn-secondary { text-align: center; }
+    /* Week tabs scroll horizontally instead of wrapping messily */
+    .week-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+    .week-tab { flex-shrink: 0; }
+    /* Modal slides up more on small screens */
+    .modal { padding: 24px 18px 36px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <div class="logo">FORGE</div>
+      <div class="tagline">AI-Powered Training Programs</div>
+    </div>
+  </div>
+
+  <div class="steps" id="stepBar">
+    <div class="step-dot active" id="s0"></div>
+    <div class="step-dot" id="s1"></div>
+    <div class="step-dot" id="s2"></div>
+    <div class="step-dot" id="s3"></div>
+    <div class="step-dot" id="s4"></div>
+    <div class="step-dot" id="s5"></div>
+    <div class="step-dot" id="s6"></div>
+    <div class="step-dot" id="s7"></div>
+  </div>
+
+  <!-- STEP 0: Goal -->
+  <div class="section visible" id="step0">
+    <div class="section-title">What's Your Goal?</div>
+    <div class="section-sub">This drives everything — program structure, volume, intensity.</div>
+    <div class="goal-grid">
+      <div class="goal-card" data-goal="Build Lean Muscle" onclick="selectGoal(this)">
+        <div class="icon">💪</div>
+        <div class="goal-name">Build Lean Muscle</div>
+        <div class="goal-desc">Hypertrophy focus, muscle definition</div>
+      </div>
+      <div class="goal-card" data-goal="Bulk (Mass & Strength)" onclick="selectGoal(this)">
+        <div class="icon">🏋️</div>
+        <div class="goal-name">Bulk Up</div>
+        <div class="goal-desc">Maximum mass and strength gains</div>
+      </div>
+      <div class="goal-card" data-goal="Lose Weight / Cut" onclick="selectGoal(this)">
+        <div class="icon">🔥</div>
+        <div class="goal-name">Lose Weight / Cut</div>
+        <div class="goal-desc">Fat loss while preserving muscle</div>
+      </div>
+      <div class="goal-card" data-goal="Improve Strength" onclick="selectGoal(this)">
+        <div class="icon">⚡</div>
+        <div class="goal-name">Improve Strength</div>
+        <div class="goal-desc">Powerlifting-style strength focus</div>
+      </div>
+      <div class="goal-card" data-goal="Improve Endurance" onclick="selectGoal(this)">
+        <div class="icon">🏃</div>
+        <div class="goal-name">Improve Endurance</div>
+        <div class="goal-desc">Conditioning and cardiovascular fitness</div>
+      </div>
+      <div class="goal-card" data-goal="General Fitness" onclick="selectGoal(this)">
+        <div class="icon">🎯</div>
+        <div class="goal-name">General Fitness</div>
+        <div class="goal-desc">Balanced health and performance</div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-primary" id="s0next" onclick="goStep(1)" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 1: Metrics -->
+  <div class="section" id="step1">
+    <div class="section-title">Your Metrics</div>
+    <div class="section-sub">Used for weight suggestions and program calibration.</div>
+
+    <div class="field">
+      <label>Units</label>
+      <div class="unit-toggle">
+        <div class="unit-opt selected" id="lbs-opt" onclick="setUnit('lbs')">lbs</div>
+        <div class="unit-opt" id="kg-opt" onclick="setUnit('kg')">kg</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Age</label>
+        <input type="number" id="age" placeholder="e.g. 28" min="16" max="80">
+      </div>
+      <div class="field">
+        <label>Sex</label>
+        <select id="sex">
+          <option value="">Select</option>
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label id="weightLabel">Current Weight (lbs)</label>
+        <input type="number" id="weight" placeholder="e.g. 185">
+      </div>
+      <div class="field">
+        <label id="goalWeightLabel">Goal Weight (lbs)</label>
+        <input type="number" id="goalWeight" placeholder="e.g. 200 (optional)">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Height</label>
+        <input type="text" id="height" placeholder='e.g. 5&apos;11" or 180cm'>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Experience Level</label>
+      <div class="toggle-group">
+        <button class="toggle-btn" data-exp="Beginner (0–1 yr)" onclick="selectToggle(this, 'exp')">Beginner (0–1 yr)</button>
+        <button class="toggle-btn" data-exp="Intermediate (1–3 yrs)" onclick="selectToggle(this, 'exp')">Intermediate (1–3 yrs)</button>
+        <button class="toggle-btn" data-exp="Advanced (3+ yrs)" onclick="selectToggle(this, 'exp')">Advanced (3+ yrs)</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Anything to note? (injuries, limitations — optional)</label>
+      <input type="text" id="notes" placeholder="e.g. bad lower back, knee issues">
+    </div>
+
+    <div class="nav">
+      <button class="btn-secondary" onclick="goStep(0)">← Back</button>
+      <button class="btn-primary" onclick="goStep(2)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Schedule -->
+  <div class="section" id="step2">
+    <div class="section-title">Training Schedule</div>
+    <div class="section-sub">How you train determines how we split the program.</div>
+
+    <div class="field">
+      <label>Days Per Week</label>
+      <div class="toggle-group">
+        <button class="toggle-btn" data-days="2" onclick="selectToggle(this, 'days')">2 days</button>
+        <button class="toggle-btn" data-days="3" onclick="selectToggle(this, 'days')">3 days</button>
+        <button class="toggle-btn" data-days="4" onclick="selectToggle(this, 'days')">4 days</button>
+        <button class="toggle-btn" data-days="5" onclick="selectToggle(this, 'days')">5 days</button>
+        <button class="toggle-btn" data-days="6" onclick="selectToggle(this, 'days')">6 days</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Session Length</label>
+      <div class="toggle-group">
+        <button class="toggle-btn" data-len="30–45 min" onclick="selectToggle(this, 'len')">30–45 min</button>
+        <button class="toggle-btn" data-len="45–60 min" onclick="selectToggle(this, 'len')">45–60 min</button>
+        <button class="toggle-btn" data-len="60–90 min" onclick="selectToggle(this, 'len')">60–90 min</button>
+        <button class="toggle-btn" data-len="90+ min" onclick="selectToggle(this, 'len')">90+ min</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Program Length (weeks)</label>
+      <div class="toggle-group">
+        <button class="toggle-btn" data-weeks="4" onclick="selectToggle(this, 'weeks')">4 weeks</button>
+        <button class="toggle-btn" data-weeks="8" onclick="selectToggle(this, 'weeks')">8 weeks</button>
+        <button class="toggle-btn" data-weeks="12" onclick="selectToggle(this, 'weeks')">12 weeks</button>
+        <button class="toggle-btn" data-weeks="16" onclick="selectToggle(this, 'weeks')">16 weeks</button>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-secondary" onclick="goStep(1)">← Back</button>
+      <button class="btn-primary" onclick="goStep(3)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Equipment -->
+  <div class="section" id="step3">
+    <div class="section-title">Available Equipment</div>
+    <div class="section-sub">Select everything you have access to.</div>
+
+    <div class="equip-grid" id="equipGrid">
+      <div class="equip-item selected" data-equip="Bodyweight" onclick="toggleEquip(this)">
+        <div class="check">✓</div> Bodyweight Only
+      </div>
+      <div class="equip-item" data-equip="Dumbbells" onclick="toggleEquip(this)">
+        <div class="check"></div> Dumbbells
+      </div>
+      <div class="equip-item" data-equip="Barbell & Plates" onclick="toggleEquip(this)">
+        <div class="check"></div> Barbell & Plates
+      </div>
+      <div class="equip-item" data-equip="Squat Rack / Power Cage" onclick="toggleEquip(this)">
+        <div class="check"></div> Squat Rack / Cage
+      </div>
+      <div class="equip-item" data-equip="Bench Press" onclick="toggleEquip(this)">
+        <div class="check"></div> Bench Press
+      </div>
+      <div class="equip-item" data-equip="Pull-up Bar" onclick="toggleEquip(this)">
+        <div class="check"></div> Pull-up Bar
+      </div>
+      <div class="equip-item" data-equip="Resistance Bands" onclick="toggleEquip(this)">
+        <div class="check"></div> Resistance Bands
+      </div>
+      <div class="equip-item" data-equip="Kettlebells" onclick="toggleEquip(this)">
+        <div class="check"></div> Kettlebells
+      </div>
+      <div class="equip-item" data-equip="Cable Machine" onclick="toggleEquip(this)">
+        <div class="check"></div> Cable Machine
+      </div>
+      <div class="equip-item" data-equip="Smith Machine" onclick="toggleEquip(this)">
+        <div class="check"></div> Smith Machine
+      </div>
+      <div class="equip-item" data-equip="Leg Press Machine" onclick="toggleEquip(this)">
+        <div class="check"></div> Leg Press Machine
+      </div>
+      <div class="equip-item" data-equip="Full Commercial Gym" onclick="toggleEquip(this)">
+        <div class="check"></div> Full Commercial Gym
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-secondary" onclick="goStep(2)">← Back</button>
+      <button class="btn-primary" onclick="goStep(4)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Focus & Goals -->
+  <div class="section" id="step4">
+    <div class="section-title">Anything to Focus On?</div>
+    <div class="section-sub">Optional but powerful — tell the generator what you really want to target.</div>
+
+    <div class="field">
+      <label>Body Part Focus (optional — pick any)</label>
+      <div class="toggle-group" id="focusGroup">
+        <button class="toggle-btn" data-focus="Glutes" onclick="toggleFocus(this)">🍑 Glutes</button>
+        <button class="toggle-btn" data-focus="Shoulders" onclick="toggleFocus(this)">🏋 Shoulders</button>
+        <button class="toggle-btn" data-focus="Arms (Biceps & Triceps)" onclick="toggleFocus(this)">💪 Arms</button>
+        <button class="toggle-btn" data-focus="Chest" onclick="toggleFocus(this)">Chest</button>
+        <button class="toggle-btn" data-focus="Back (thickness & width)" onclick="toggleFocus(this)">Back</button>
+        <button class="toggle-btn" data-focus="Core & Abs" onclick="toggleFocus(this)">Core & Abs</button>
+        <button class="toggle-btn" data-focus="Legs (Quads & Hamstrings)" onclick="toggleFocus(this)">Legs</button>
+        <button class="toggle-btn" data-focus="Calves" onclick="toggleFocus(this)">Calves</button>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:6px;">
+      <label>Tell us more (optional)</label>
+      <textarea id="userComments" rows="5" placeholder="Write anything that should shape your program. Examples:&#10;• I want to grow a bigger, rounder butt&#10;• My shoulders are lagging — need more definition&#10;• I've always had weak hamstrings&#10;• I want to get stronger on my bench press&#10;• I run 5k on weekends so don't overtax my legs" style="resize:vertical;line-height:1.6;"></textarea>
+    </div>
+
+    <div style="background:rgba(232,255,71,0.05);border:1px solid rgba(232,255,71,0.12);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--muted);margin-bottom:4px;">
+      The more specific you are, the better the program targets your actual goals — not just generic exercises.
+    </div>
+
+    <div class="nav">
+      <button class="btn-secondary" onclick="goStep(3)">← Back</button>
+      <button class="btn-primary" onclick="generateProgram()">Build My Program →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: Generating -->
+  <div class="section" id="step5">
+    <div class="generating">
+      <div class="gen-logo">FORGE</div>
+      <div style="color: var(--muted); font-size: 14px;">Building your program...</div>
+      <div class="pulse-bar"><div class="pulse-fill"></div></div>
+      <div class="gen-status" id="genStatus">Analyzing your goals...</div>
+    </div>
+    <div id="errorBox" style="display:none;"></div>
+  </div>
+
+  <!-- STEP 6: 1RM Entry -->
+  <div class="section" id="step6">
+    <div class="section-title">Test Your Maxes</div>
+    <div class="section-sub">Week 1 is your testing week. Work up to a heavy single on each lift below — this calibrates all your working weights for the entire program.</div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Testing Protocol</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.8;">
+        <div style="padding:5px 0;border-bottom:1px solid var(--border);">1. Warm up thoroughly — 5–10 min light cardio + dynamic stretching</div>
+        <div style="padding:5px 0;border-bottom:1px solid var(--border);">2. Warm-up sets: 40% × 10, 60% × 5, 75% × 3, 85% × 1, 92% × 1</div>
+        <div style="padding:5px 0;border-bottom:1px solid var(--border);">3. Rest 3–5 min between heavy attempts</div>
+        <div style="padding:5px 0;border-bottom:1px solid var(--border);">4. Work up to the heaviest single rep you can complete with good form</div>
+        <div style="padding:5px 0;">5. Record it below — your program weights update automatically</div>
+      </div>
+    </div>
+
+    <div id="ormInputs"></div>
+
+    <div style="background:rgba(232,255,71,0.06);border:1px solid rgba(232,255,71,0.15);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:20px;font-size:13px;color:var(--muted);">
+      Don't know your max yet? Leave fields blank — the program will use estimated working weights based on your bodyweight and experience. You can update these anytime.
+    </div>
+
+    <div class="nav">
+      <button class="btn-secondary" onclick="goStep(4)" style="display:none" id="ormBackBtn">← Back</button>
+      <button class="btn-primary" onclick="applyORMsAndRender()">View My Program →</button>
+    </div>
+  </div>
+
+  <!-- STEP 7: Program -->
+  <div class="section" id="step7">
+    <div id="programContent"></div>
+  </div>
+
+  <!-- CONFIRM RESET MODAL -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal" style="position:relative;max-height:unset;padding:32px 28px;">
+      <div class="modal-title" id="confirmModalTitle">Start Over?</div>
+      <div style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.6;" id="confirmModalBody">This will permanently delete your saved program and all workout history.</div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-primary" style="background:var(--danger);border-color:var(--danger);border:none;" onclick="confirmResetExecute()">Yes, delete everything</button>
+        <button class="btn-secondary" onclick="document.getElementById('confirmModal').classList.remove('open')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPLAINER MODAL -->
+  <div class="modal-overlay" id="explainerModal">
+    <div class="modal" style="position:relative;">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- SWAP MODAL -->
+  <div class="modal-overlay" id="swapModal">
+    <div class="swap-modal">
+      <button class="modal-close" onclick="closeSwapModal()">✕</button>
+      <div class="modal-title" id="swapTitle">Swap Exercise</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;" id="swapSubtitle"></div>
+      <div id="swapOptions" style="margin-bottom:16px;"></div>
+      <div class="field">
+        <label>Or describe what you want instead</label>
+        <input type="text" id="swapCustomInput" placeholder="e.g. something easier on my knees, a cable alternative...">
+      </div>
+      <button class="btn-primary" style="width:100%;margin-top:8px;" onclick="confirmSwap()">Apply Swap to All Weeks →</button>
+      <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">This permanently replaces the exercise everywhere in your program</div>
+    </div>
+  </div>
+
+  <!-- GYM MODE OVERLAY -->
+  <div class="gym-overlay" id="gymOverlay">
+    <div class="gym-header">
+      <div>
+        <div class="gym-title" id="gymSessionTitle">Session</div>
+        <div style="font-size:12px;color:var(--muted)" id="gymSessionMeta"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="font-size:13px;color:var(--accent);font-weight:600;" id="gymProgress"></div>
+        <button class="btn-ghost" style="padding:8px 12px;font-size:12px" onclick="closeGymMode()">✕ Exit</button>
+      </div>
+    </div>
+    <div class="gym-body" id="gymBody"></div>
+    <div class="rest-timer" id="restTimer">
+      <div>
+        <div class="timer-label">Rest</div>
+        <div class="timer-count" id="timerDisplay">0:00</div>
+      </div>
+      <div style="flex:1;height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;">
+        <div id="timerBar" style="height:100%;background:var(--accent);transition:width 0.9s linear;width:100%"></div>
+      </div>
+      <button class="timer-skip" onclick="skipTimer()">Skip ✕</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'forge_v1';
+
+const state = {
+  goal: '', unit: 'lbs', age: '', sex: '', weight: '', goalWeight: '', height: '',
+  experience: '', notes: '', days: '', len: '', weeks: '', equipment: ['Bodyweight'],
+  focusParts: [], userComments: '',
+  program: null, orms: {}, coreLifts: [], _exStore: [], exCache: {},
+  log: {}, swaps: {} // swaps: { "wkIdx_dayIdx_exIdx": { name, sets, reps, rest, weight_note, muscles } }
+};
+
+// ── Persistence ──────────────────────────────────────────────────────────────
+function saveToStorage() {
+  try {
+    const data = {
+      program: state.program,
+      orms: state.orms,
+      coreLifts: state.coreLifts,
+      log: state.log,
+      swaps: state.swaps,
+      meta: {
+        goal: state.goal, unit: state.unit, age: state.age, sex: state.sex,
+        weight: state.weight, goalWeight: state.goalWeight, height: state.height,
+        experience: state.experience, notes: state.notes, days: state.days,
+        len: state.len, weeks: state.weeks, equipment: state.equipment,
+        focusParts: state.focusParts, userComments: state.userComments
+      },
+      savedAt: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch(e) { console.warn('Save failed:', e); }
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function clearStorage() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+// ── Boot: check for saved program on load ────────────────────────────────────
+function boot() {
+  const saved = loadFromStorage();
+  if (saved && saved.program && saved.program.weeks) {
+    // Restore state
+    state.program = saved.program;
+    state.orms = saved.orms || {};
+    state.coreLifts = saved.coreLifts || [];
+    state.log = saved.log || {};
+    state.swaps = saved.swaps || {};
+    if (saved.meta) Object.assign(state, saved.meta);
+    // Show resume screen instead of onboarding
+    showResume(saved);
+  }
+  // else: stay on step 0 (default)
+}
+
+function showResume(saved) {
+  const meta = saved.meta || {};
+  const p = saved.program;
+  const weeksDone = Object.keys(saved.log || {}).length > 0
+    ? getWeeksWithActivity(saved.log) : 0;
+  const resumeHtml = `
+    <div class="resume-banner">
+      <div class="resume-title">${p.program_name}</div>
+      <div class="resume-meta">${p.split_type} · ${p.total_weeks} weeks · ${meta.unit||'lbs'} · Saved ${timeSince(saved.savedAt)}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="btn-primary" style="flex:1;min-width:140px" onclick="resumeProgram()">Resume My Program →</button>
+        <button class="btn-ghost" onclick="confirmReset()">Start Over</button>
+      </div>
+    </div>`;
+  // Insert resume banner above step 0 content
+  const step0 = document.getElementById('step0');
+  const banner = document.createElement('div');
+  banner.id = 'resumeBanner';
+  banner.innerHTML = resumeHtml;
+  step0.insertBefore(banner, step0.firstChild);
+}
+
+function getWeeksWithActivity(log) {
+  const weeks = new Set(Object.keys(log).map(k => k.split('_')[0]));
+  return weeks.size;
+}
+
+function timeSince(ts) {
+  if (!ts) return 'recently';
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (mins > 0) return `${mins}m ago`;
+  return 'just now';
+}
+
+function resumeProgram() {
+  renderProgram(state.program);
+  goStep(7);
+}
+
+function confirmReset() {
+  document.getElementById('confirmModalTitle').textContent = 'Start Over?';
+  document.getElementById('confirmModalBody').textContent = "This will permanently delete your saved program and all workout history. You'll go back to the beginning to build a new one.";
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function confirmResetExecute() {
+  document.getElementById('confirmModal').classList.remove('open');
+  clearStorage();
+  const banner = document.getElementById('resumeBanner');
+  if (banner) banner.remove();
+  state.program = null; state._exStore = []; state.exCache = {}; state.orms = {};
+  state.coreLifts = []; state.log = {}; state.swaps = {}; state.focusParts = [];
+  state.userComments = ''; state.goal = '';
+  document.querySelectorAll('.goal-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('s0next').disabled = true;
+  goStep(0);
+}
+
+// ── Gym Mode ─────────────────────────────────────────────────────────────────
+let gymState = { weekIdx: 0, dayIdx: 0, timerInterval: null, timerEnd: 0, totalRest: 0 };
+
+function openGymMode(weekIdx, dayIdx) {
+  gymState.weekIdx = weekIdx;
+  gymState.dayIdx = dayIdx;
+  const week = state.program.weeks[weekIdx];
+  const trainingDays = (week.days || []).filter(d => !d.is_rest);
+  const day = trainingDays[dayIdx];
+  if (!day) return;
+
+  document.getElementById('gymSessionTitle').textContent = day.day_name;
+  document.getElementById('gymSessionMeta').textContent = `Week ${week.week_number} · ${day.focus}`;
+
+  renderGymExercises(weekIdx, dayIdx, day);
+  document.getElementById('gymOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  updateGymProgress(weekIdx, dayIdx, day);
+}
+
+function renderGymExercises(weekIdx, dayIdx, day) {
+  state._exStore = []; // Reset exercise store to prevent index drift across renders
+  const body = document.getElementById('gymBody');
+  let html = '';
+  (day.exercises || []).forEach((ex, exIdx) => {
+    const sets = ex.sets || 3;
+    const allDone = Array.from({length: sets}, (_,s) =>
+      state.log[`${weekIdx}_${dayIdx}_${exIdx}_${s}`]
+    ).every(Boolean);
+
+    html += `<div class="gym-ex${allDone?' done':''}" id="gymEx_${exIdx}">
+      <div class="gym-ex-header">
+        <div class="gym-ex-num">${allDone ? '✓' : exIdx+1}</div>
+        <div style="flex:1">
+          <div class="gym-ex-name">${ex.name}</div>
+          <div class="gym-ex-meta">${sets} sets · ${ex.reps||''} reps · ${ex.weight_note||''} · Rest: ${ex.rest||'—'}</div>
+        </div>
+        <button class="ex-explain-btn" onclick="openExplainer(state._exStore[${state._exStore.push(ex)-1}])" title="How to">?</button>
+        <button class="ex-explain-btn" onclick="openSwapModal('${ex.name.replace(/'/g,"\\'")}','${(ex.muscles||'').replace(/'/g,"\\'")}','${(day.day_name||'').replace(/'/g,"\\'")}',${weekIdx},${dayIdx},${exIdx})" title="Swap" style="color:var(--muted);">↔</button>
+      </div>
+      <div class="gym-sets">`;
+
+    for (let s = 0; s < sets; s++) {
+      const done = state.log[`${weekIdx}_${dayIdx}_${exIdx}_${s}`];
+      // parse rest seconds from ex.rest string
+      const restSec = parseRestSeconds(ex.rest);
+      html += `<button class="set-btn${done?' completed':''}"
+        onclick="toggleSet(${weekIdx},${dayIdx},${exIdx},${s},${restSec})"
+        id="setBtn_${exIdx}_${s}">
+        <span>${s+1}</span>
+        <span class="set-label">${done?'✓':'SET'}</span>
+      </button>`;
+    }
+    html += `</div></div>`;
+  });
+
+  // Off day advice
+  const week = state.program.weeks[weekIdx];
+  if (week.off_day_advice) {
+    html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:8px;font-size:13px;color:var(--muted);">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;color:var(--muted)">Off Day Advice</div>
+      ${week.off_day_advice}
+    </div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+function parseRestSeconds(restStr) {
+  if (!restStr) return 90;
+  const minMatch = restStr.match(/(\d+(?:\.\d+)?)\s*min/i);
+  const secMatch = restStr.match(/(\d+)\s*sec/i);
+  if (minMatch) return Math.round(parseFloat(minMatch[1]) * 60);
+  if (secMatch) return parseInt(secMatch[1]);
+  return 90;
+}
+
+function toggleSet(weekIdx, dayIdx, exIdx, setIdx, restSec) {
+  const key = `${weekIdx}_${dayIdx}_${exIdx}_${setIdx}`;
+  const wasCompleted = state.log[key];
+
+  if (wasCompleted) {
+    delete state.log[key];
+    stopTimer();
+  } else {
+    state.log[key] = true;
+    startTimer(restSec);
+  }
+  saveToStorage();
+
+  // Update button
+  const btn = document.getElementById(`setBtn_${exIdx}_${setIdx}`);
+  if (btn) {
+    btn.classList.toggle('completed', !wasCompleted);
+    btn.querySelector('.set-label').textContent = !wasCompleted ? '✓' : 'SET';
+  }
+
+  // Check if whole exercise done
+  const week = state.program.weeks[weekIdx];
+  const trainingDays = (week.days||[]).filter(d=>!d.is_rest);
+  const day = trainingDays[dayIdx];
+  const ex = (day.exercises||[])[exIdx];
+  if (ex) {
+    const sets = ex.sets || 3;
+    const allDone = Array.from({length:sets},(_,s)=>state.log[`${weekIdx}_${dayIdx}_${exIdx}_${s}`]).every(Boolean);
+    const exEl = document.getElementById(`gymEx_${exIdx}`);
+    if (exEl) {
+      exEl.classList.toggle('done', allDone);
+      const numEl = exEl.querySelector('.gym-ex-num');
+      if (numEl) numEl.textContent = allDone ? '✓' : (exIdx+1);
+    }
+  }
+  updateGymProgress(weekIdx, dayIdx, day);
+}
+
+function updateGymProgress(weekIdx, dayIdx, day) {
+  const exercises = day ? day.exercises || [] : [];
+  let totalSets = 0, doneSets = 0;
+  exercises.forEach((ex, exIdx) => {
+    const sets = ex.sets || 3;
+    totalSets += sets;
+    for (let s = 0; s < sets; s++) {
+      if (state.log[`${weekIdx}_${dayIdx}_${exIdx}_${s}`]) doneSets++;
+    }
+  });
+  const pct = totalSets > 0 ? Math.round(doneSets/totalSets*100) : 0;
+  document.getElementById('gymProgress').textContent = `${pct}% complete`;
+  if (pct === 100) {
+    document.getElementById('gymProgress').style.color = 'var(--accent2)';
+  }
+}
+
+// Rest Timer
+function startTimer(seconds) {
+  stopTimer();
+  if (seconds <= 0) return;
+  gymState.totalRest = seconds;
+  gymState.timerEnd = Date.now() + seconds * 1000;
+  const timer = document.getElementById('restTimer');
+  timer.classList.add('active');
+  updateTimerDisplay();
+  gymState.timerInterval = setInterval(() => {
+    const remaining = Math.max(0, gymState.timerEnd - Date.now());
+    updateTimerDisplay(remaining);
+    if (remaining <= 0) stopTimer();
+  }, 500);
+}
+
+function updateTimerDisplay(ms) {
+  const remaining = ms !== undefined ? ms : Math.max(0, gymState.timerEnd - Date.now());
+  const secs = Math.ceil(remaining / 1000);
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  document.getElementById('timerDisplay').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  const pct = gymState.totalRest > 0 ? (remaining / (gymState.totalRest * 1000)) * 100 : 0;
+  document.getElementById('timerBar').style.width = pct + '%';
+}
+
+function stopTimer() {
+  clearInterval(gymState.timerInterval);
+  document.getElementById('restTimer').classList.remove('active');
+}
+
+function skipTimer() { stopTimer(); }
+
+function closeGymMode() {
+  document.getElementById('gymOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  stopTimer();
+  // Refresh week view to show updated completion state
+  const tabs = document.querySelectorAll('.week-tab');
+  tabs.forEach((t,i) => { if (t.classList.contains('active')) showWeek(i); });
+}
+
+let currentStep = 0;
+
+function goStep(n) {
+  document.getElementById('step'+currentStep).classList.remove('visible');
+  currentStep = n;
+  document.getElementById('step'+n).classList.add('visible');
+  updateStepBar();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateStepBar() {
+  for(let i=0;i<8;i++){
+    const d = document.getElementById('s'+i);
+    if (!d) continue;
+    d.classList.remove('active','done');
+    if(i < currentStep) d.classList.add('done');
+    else if(i === currentStep) d.classList.add('active');
+  }
+}
+
+function selectGoal(el) {
+  document.querySelectorAll('.goal-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.goal = el.dataset.goal;
+  document.getElementById('s0next').disabled = false;
+}
+
+function setUnit(u) {
+  state.unit = u;
+  document.getElementById('lbs-opt').classList.toggle('selected', u==='lbs');
+  document.getElementById('kg-opt').classList.toggle('selected', u==='kg');
+  document.getElementById('weightLabel').textContent = 'Current Weight (' + u + ')';
+  document.getElementById('goalWeightLabel').textContent = 'Goal Weight (' + u + ')';
+}
+
+function selectToggle(el, key) {
+  el.closest('.toggle-group').querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  const val = el.dataset[key];
+  state[key] = val;
+  if(key==='exp') state.experience = val;
+  if(key==='days') state.days = val;
+  if(key==='len') state.len = val;
+  if(key==='weeks') state.weeks = val;
+}
+
+function toggleEquip(el) {
+  el.classList.toggle('selected');
+  const v = el.dataset.equip;
+  el.querySelector('.check').textContent = el.classList.contains('selected') ? '✓' : '';
+  if(el.classList.contains('selected')) { if(!state.equipment.includes(v)) state.equipment.push(v); }
+  else { state.equipment = state.equipment.filter(e=>e!==v); }
+}
+
+function toggleFocus(el) {
+  el.classList.toggle('selected');
+  const v = el.dataset.focus;
+  if (el.classList.contains('selected')) { if (!state.focusParts.includes(v)) state.focusParts.push(v); }
+  else { state.focusParts = state.focusParts.filter(f => f !== v); }
+}
+
+async function callClaude(system, userMsg, maxTokens) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTokens || 4000,
+      system: system,
+      messages: [{role:'user', content: userMsg}]
+    })
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(()=>({}));
+    throw new Error(err.error?.message || `API error ${resp.status}`);
+  }
+  const data = await resp.json();
+  return data.content.map(i=>i.text||'').join('');
+}
+
+
+function setStatus(msg) {
+  const el = document.getElementById('genStatus');
+  if (el) el.textContent = msg;
+}
+
+function showGenError(msg, rawResponse) {
+  const gen = document.getElementById('step5').querySelector('.generating');
+  if (gen) gen.style.display = 'none';
+  const eb = document.getElementById('errorBox');
+  const debugBlock = rawResponse
+    ? `<details style="margin-top:12px"><summary style="cursor:pointer;font-size:12px;color:var(--muted)">Show API response (for debugging)</summary>
+       <pre style="font-size:11px;margin-top:8px;white-space:pre-wrap;word-break:break-all;color:var(--muted);max-height:200px;overflow:auto">${String(rawResponse).replace(/</g,'&lt;').substring(0,3000)}</pre></details>`
+    : '';
+  eb.innerHTML = `<div class="error-box"><strong>Error:</strong> ${msg}<br><br>
+    <button class="btn-ghost" onclick="goStep(4)" style="margin-top:8px">← Change Settings</button>
+    <button class="btn-ghost" onclick="retryGenerate()" style="margin-top:8px;margin-left:8px">↺ Retry</button>
+    ${debugBlock}
+  </div>`;  eb.style.display = 'block';
+}
+
+function parseAnyJSON(raw) {
+  if (!raw || typeof raw !== 'string') throw new Error('Empty response from API');
+  const s = raw.trim();
+  // 1. direct
+  try { return JSON.parse(s); } catch(e) {}
+  // 2. strip fences
+  const f = s.replace(/^```(?:json|JSON)?\s*/,'').replace(/\s*```\s*$/,'').trim();
+  try { return JSON.parse(f); } catch(e) {}
+  // 3. first { … }
+  const oa = s.indexOf('{'), oz = s.lastIndexOf('}');
+  if (oa !== -1 && oz > oa) { try { return JSON.parse(s.slice(oa, oz+1)); } catch(e) {} }
+  // 4. first [ … ]
+  const aa = s.indexOf('['), az = s.lastIndexOf(']');
+  if (aa !== -1 && az > aa) { try { return JSON.parse(s.slice(aa, az+1)); } catch(e) {} }
+  throw new Error('Response was not valid JSON.\n\nFirst 300 chars: ' + s.substring(0,300));
+}
+
+async function generateProgram() {
+  state.age = document.getElementById('age').value;
+  state.sex = document.getElementById('sex').value;
+  state.weight = document.getElementById('weight').value;
+  state.goalWeight = document.getElementById('goalWeight').value;
+  state.height = document.getElementById('height').value;
+  state.notes = document.getElementById('notes').value;
+  state.userComments = document.getElementById('userComments').value;
+
+  goStep(5);
+  document.getElementById('errorBox').style.display = 'none';
+  document.getElementById('step5').querySelector('.generating').style.display = 'block';
+
+  const totalWeeks = parseInt(state.weeks) || 8;
+  const daysPerWeek = parseInt(state.days) || 4;
+  const unit = state.unit;
+  const wt = state.weight ? `${state.weight} ${unit}` : 'unknown weight';
+  const goalWt = state.goalWeight ? `, goal weight: ${state.goalWeight} ${unit}` : '';
+  const focusLine = state.focusParts.length > 0 ? ` | Priority body parts: ${state.focusParts.join(', ')}` : '';
+  const commentsLine = state.userComments ? ` | User goals/notes: "${state.userComments}"` : '';
+  const ctx = `Goal: ${state.goal} | Experience: ${state.experience||'Intermediate'} | ${state.sex||'unknown'}, age ${state.age||'?'}, current weight: ${wt}${goalWt}, height: ${state.height||'unknown'} | Equipment: ${state.equipment.join(', ')} | Session: ${state.len||'60 min'} | Units: ${unit}${state.notes ? ' | Limitations: '+state.notes : ''}${focusLine}${commentsLine}`;
+
+  const BARE_JSON_SYS = 'You are a strength coach API. You output ONLY raw JSON with no explanation, no markdown, no code fences. Your entire response is parsed directly by JSON.parse().';
+
+  try {
+    // ── Phase 1: program skeleton (meta + week themes) ───────────────────────
+    setStatus('Designing program structure...');
+
+    const skeletonWeeks = Array.from({length: totalWeeks}, (_,i) => {
+      const n = i+1;
+      const isDeload = totalWeeks >= 8 && n % 4 === 0;
+      return `{"week_number":${n},"is_deload":${isDeload},"theme":"${isDeload?'Deload & Recovery':'TBD'}"}`;
+    }).join(',');
+
+    const phase1Prompt = `${ctx}
+
+You are designing a ${totalWeeks}-week program for the above athlete.
+Choose the best training framework (PPL, 5/3/1, GZCLP, PHUL, Upper/Lower, Full Body, etc.).
+
+Respond with ONLY this JSON object (fill in the values, keep all keys exactly as shown):
+{"program_name":"Iron Foundation","methodology":"PPL split using progressive overload with weekly volume increases","split_type":"Push / Pull / Legs","overview":"3-week loading blocks followed by deload","core_lifts":["Barbell Bench Press","Barbell Squat","Deadlift","Overhead Press"],"week_plan":[${skeletonWeeks}]}
+
+Rules:
+- Replace all values with real ones for this athlete
+- "core_lifts": list 3–5 primary compound lifts that will be the backbone of the program (the ones we'll test 1RM on). Only include lifts available given their equipment.
+- "week_plan": keep all ${totalWeeks} entries, update each "theme" to something descriptive, keep is_deload values as-is
+- The chosen framework MUST include push, pull, AND leg/hip patterns every week — do not select a split that omits any major movement category. If the athlete has focus areas, those get more volume, not exclusive priority.
+- Output ONLY the JSON. Nothing else.`;
+
+    let metaRaw;
+    try {
+      metaRaw = await callClaude(BARE_JSON_SYS, phase1Prompt, 1200);
+    } catch(e) { throw new Error('API call failed: ' + e.message); }
+
+    let meta;
+    try {
+      meta = parseAnyJSON(metaRaw);
+    } catch(e) {
+      showGenError('Could not parse program structure.', metaRaw);
+      return;
+    }
+    if (!Array.isArray(meta.week_plan)) {
+      showGenError('Program structure was malformed.', metaRaw);
+      return;
+    }
+
+    // ── Phase 2: one week at a time ──────────────────────────────────────────
+    const allWeeks = [];
+    const usedExercises = new Set();
+
+    for (let i = 0; i < meta.week_plan.length; i++) {
+      const wk = meta.week_plan[i];
+      setStatus(`Building Week ${wk.week_number} of ${totalWeeks}...`);
+
+      const prevList = usedExercises.size > 0
+        ? `Exercises used so far (vary away from these): ${[...usedExercises].slice(-15).join(', ')}.`
+        : 'This is Week 1 — choose excellent foundation exercises.';
+
+      const isDeload = wk.is_deload;
+
+      // Build explicit periodization instruction based on week theme
+      let periodizationNote = '';
+      const theme = (wk.theme || '').toLowerCase();
+      if (isDeload) {
+        periodizationNote = 'DELOAD WEEK: 2–3 sets per exercise (not 4+), reps 10–12 at easy effort, weight ~60% of normal, use lighter variation lifts, prioritize recovery and movement quality.';
+      } else if (theme.includes('peak') || theme.includes('intensif') || theme.includes('strength') || theme.includes('heavy')) {
+        periodizationNote = 'PEAK/INTENSITY WEEK: Heavy weights, LOW reps (3–5 reps per set), HIGH sets (4–5 sets). This is the hardest week — push close to failure on main lifts. Example: 5x3 @ 87–90% 1RM on primary lifts, 3x5 on accessories.';
+      } else if (theme.includes('volume accum') || theme.includes('accumulation') || (theme.includes('volume') && wk.week_number <= 2)) {
+        periodizationNote = 'VOLUME ACCUMULATION: Moderate weight, HIGHER reps (8–12), moderate sets (3–4). Build work capacity. Example: 4x10 @ 65–70% 1RM. NOT the same as peak week — do not use low reps or heavy singles.';
+      } else if (theme.includes('peak volume') || (theme.includes('volume') && wk.week_number >= 3)) {
+        periodizationNote = 'PEAK VOLUME: Highest total sets of the program (4–5 sets), moderate-high reps (6–10), moderate-heavy weight (72–78% 1RM). More volume than week 1–2 but not yet peak intensity. Example: 5x8 @ 75% 1RM.';
+      } else if (theme.includes('power') || theme.includes('speed')) {
+        periodizationNote = 'POWER/SPEED: Moderate weight (70–80% 1RM), low-moderate reps (3–6), focus on bar speed and explosiveness. Example: 5x4 with controlled eccentric, explosive concentric.';
+      } else {
+        // Generic progressive overload — slightly heavier/harder than the week before
+        const pct = 65 + Math.min(wk.week_number * 3, 25);
+        periodizationNote = `WEEK ${wk.week_number} — Progressive overload: approximately ${pct}% 1RM, reps in the 6–10 range, 3–4 sets. Slightly heavier and/or more sets than the previous week.`;
+      }
+
+      const phase2Prompt = `${ctx}
+Program: ${meta.program_name} (${meta.split_type})
+Week ${wk.week_number} of ${totalWeeks} — Theme: ${wk.theme}
+
+PERIODIZATION INSTRUCTION: ${periodizationNote}
+
+${prevList}
+
+Generate exactly Week ${wk.week_number}. Include exactly ${daysPerWeek} training sessions only — do NOT include rest days.
+For each session: 4–6 exercises. IMPORTANT: sets and reps MUST match the periodization instruction above — do not default to generic 3x10.
+Weight notes must be specific to this athlete (e.g. "~185 lbs" or "RPE 8" or "75% 1RM ~155 lbs").
+Write a short "off_day_advice" string for non-training days this week (1–2 sentences, relevant to this week's intensity).
+
+BALANCE RULE — CRITICAL: The program MUST train all major movement patterns every week regardless of the athlete's stated focus areas:
+- Push (chest, shoulders, triceps) — e.g. bench press, overhead press, dips, push-ups
+- Pull (back, biceps) — e.g. rows, pull-ups, lat pulldown
+- Legs/hips (quads, hamstrings, glutes) — e.g. squats, lunges, hip thrusts, RDLs
+- Core — at least 1 core exercise per week
+
+If the athlete has stated priority body parts or goals, give those muscles MORE sets/volume/frequency — but do NOT remove other movement patterns entirely. Think of it as a bias, not a replacement. For example, "glutes and back" means more hip hinge and pull volume, but push exercises must still appear in the program.
+
+Respond with ONLY this JSON object:
+{"week_number":${wk.week_number},"is_deload":${isDeload},"theme":"${wk.theme}","off_day_advice":"20–30 min walk, light stretching, or foam rolling. Avoid anything that causes muscle fatigue.","days":[{"day_name":"Push A","focus":"Chest, Shoulders, Triceps","is_rest":false,"exercises":[{"name":"Barbell Bench Press","sets":5,"reps":"5","rest":"3 min","weight_note":"~185 lbs (~87% 1RM)","muscles":"Chest, Triceps, Delts"}]}]}
+
+Fill in real sessions for this athlete. Output ONLY the JSON.`;
+
+      let wkRaw, wkData;
+      let weekAttempts = 0;
+      while (weekAttempts < 3) {
+        weekAttempts++;
+        if (weekAttempts > 1) setStatus(`Retrying Week ${wk.week_number} (attempt ${weekAttempts})...`);
+        try {
+          wkRaw = await callClaude(BARE_JSON_SYS, phase2Prompt, 3500);
+          wkData = parseAnyJSON(wkRaw);
+          break; // success
+        } catch(e) {
+          if (weekAttempts >= 3) {
+            // Partial save: store however many weeks we got so far
+            if (allWeeks.length > 0) {
+              state.program = {
+                program_name: meta.program_name || 'Your Program',
+                methodology: meta.methodology || '',
+                total_weeks: allWeeks.length,
+                days_per_week: daysPerWeek,
+                overview: meta.overview || '',
+                split_type: meta.split_type || '',
+                weeks: allWeeks
+              };
+              saveToStorage();
+            }
+            showGenError(`Failed to generate Week ${wk.week_number} after 3 attempts: ${e.message}${allWeeks.length > 0 ? ` Your first ${allWeeks.length} week(s) were saved.` : ''}`, wkRaw);
+            return;
+          }
+          await new Promise(r => setTimeout(r, 1500)); // brief pause before retry
+        }
+      }
+
+      // collect exercise names for variety tracking
+      (wkData.days||[]).forEach(d => (d.exercises||[]).forEach(ex => {
+        if (ex.name) usedExercises.add(ex.name);
+      }));
+
+      allWeeks.push(wkData);
+
+      // Save progress after each week so a mid-generation failure doesn't lose everything
+      state.program = {
+        program_name: meta.program_name || 'Your Program',
+        methodology: meta.methodology || '',
+        total_weeks: totalWeeks,
+        days_per_week: daysPerWeek,
+        overview: meta.overview || '',
+        split_type: meta.split_type || '',
+        weeks: allWeeks
+      };
+      saveToStorage();
+    }
+
+    // ── Phase 3: assemble + route to 1RM screen ──────────────────────────────
+    setStatus('Finishing up...');
+    state.program = {
+      program_name: meta.program_name || 'Your Program',
+      methodology: meta.methodology || '',
+      total_weeks: totalWeeks,
+      days_per_week: daysPerWeek,
+      overview: meta.overview || '',
+      split_type: meta.split_type || '',
+      weeks: allWeeks
+    };
+    // Show 1RM entry screen with core lifts from meta
+    const coreLifts = Array.isArray(meta.core_lifts) && meta.core_lifts.length > 0
+      ? meta.core_lifts
+      : ['Barbell Squat', 'Barbell Bench Press', 'Deadlift'];
+    showORMEntry(coreLifts);
+
+  } catch(err) {
+    showGenError(err.message);
+  }
+}
+
+function retryGenerate() {
+  document.getElementById('errorBox').style.display = 'none';
+  const gen = document.getElementById('step5').querySelector('.generating');
+  if (gen) gen.style.display = 'block';
+  setStatus('Retrying...');
+  generateProgram();
+}
+
+
+// ── 1RM handling ────────────────────────────────────────────────────────────
+
+function openUpdateMaxes() {
+  const lifts = state.coreLifts && state.coreLifts.length > 0
+    ? state.coreLifts
+    : (state.program && state.program.core_lifts) || [];
+  if (!lifts.length) { alert('No core lifts found for this program.'); return; }
+  state.coreLifts = lifts;
+  const container = document.getElementById('ormInputs');
+  if (!container) return;
+  let html = '';
+  lifts.forEach(lift => {
+    const savedVal = state.orms && state.orms[lift] ? state.orms[lift] : '';
+    html += `<div class="field">
+      <label>${lift} — 1 Rep Max (${state.unit})</label>
+      <input type="number" id="orm_${lift.replace(/\s+/g,'_')}" placeholder="Leave blank to use estimated weight" min="0" value="${savedVal}">
+    </div>`;
+  });
+  container.innerHTML = html;
+  // Show back button since we're coming from the program view
+  const backBtn = document.getElementById('ormBackBtn');
+  if (backBtn) { backBtn.style.display = 'inline-flex'; backBtn.onclick = () => goStep(7); }
+  goStep(6);
+}
+
+function showORMEntry(coreLifts) {
+  state.coreLifts = coreLifts;
+  state.orms = {};
+  const container = document.getElementById('ormInputs');
+  if (!container) return;
+  let html = '';
+  coreLifts.forEach(lift => {
+    html += `<div class="field">
+      <label>${lift} — 1 Rep Max (${state.unit})</label>
+      <input type="number" id="orm_${lift.replace(/\s+/g,'_')}" placeholder="Leave blank to use estimated weight" min="0">
+    </div>`;
+  });
+  container.innerHTML = html;
+  goStep(6);
+}
+
+function applyORMsAndRender() {
+  const orms = {};
+  (state.coreLifts || []).forEach(lift => {
+    const key = lift.replace(/\s+/g,'_');
+    const val = parseFloat(document.getElementById('orm_'+key)?.value);
+    if (!isNaN(val) && val > 0) orms[lift] = val;
+  });
+  state.orms = orms;
+  // Patch weight_notes in program using entered 1RMs
+  if (state.program && Object.keys(orms).length > 0) {
+    state.program.weeks.forEach(wk => {
+      (wk.days || []).forEach(day => {
+        (day.exercises || []).forEach(ex => {
+          for (const [lift, orm] of Object.entries(orms)) {
+            if (ex.name.toLowerCase().includes(lift.toLowerCase().split(' ')[0]) ||
+                lift.toLowerCase().includes(ex.name.toLowerCase().split(' ')[0])) {
+              const pctMatch = ex.weight_note.match(/(\d+)\s*%/);
+              const repMatch = ex.reps.match(/(\d+)/);
+              let pct = pctMatch ? parseInt(pctMatch[1]) / 100 : null;
+              if (!pct && repMatch) {
+                const reps = parseInt(repMatch[1]);
+                pct = reps <= 1 ? 1 : Math.round((1 / (1 + reps/30)) * 100) / 100;
+              }
+              if (pct) {
+                const working = Math.round(orm * pct / 5) * 5;
+                ex.weight_note = `~${working} ${state.unit} (~${Math.round(pct*100)}% of ${orm} ${state.unit} 1RM)`;
+              }
+              break;
+            }
+          }
+        });
+      });
+    });
+  }
+  saveToStorage();
+  renderProgram(state.program);
+  goStep(7);
+}
+
+// ── Program render ───────────────────────────────────────────────────────────
+
+function renderProgram(p) {
+  state._exStore = [];
+  const pc = document.getElementById('programContent');
+  const deloadWeeks = p.weeks.filter(w=>w.is_deload).length;
+  const hasORMs = state.orms && Object.keys(state.orms).length > 0;
+
+  let ormBadges = '';
+  if (hasORMs) {
+    ormBadges = Object.entries(state.orms).map(([k,v])=>
+      `<span style="background:rgba(232,255,71,0.1);border:1px solid rgba(232,255,71,0.2);border-radius:4px;padding:3px 8px;font-size:12px;color:var(--accent);margin:2px;">${k}: ${v} ${state.unit}</span>`
+    ).join('');
+  }
+
+  let html = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div class="program-name">${p.program_name}</div>
+        <div style="font-size:13px;color:var(--muted);">${p.split_type}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-ghost" onclick="openUpdateMaxes()" style="font-size:12px">✏ Update Maxes</button>
+        <button class="btn-ghost" onclick="confirmReset()">↺ Rebuild</button>
+      </div>
+    </div>`;
+
+  if (hasORMs) {
+    html += `<div style="margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Your 1RMs</div><div style="display:flex;flex-wrap:wrap;gap:4px;">${ormBadges}</div></div>`;
+  }
+
+  html += `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;font-size:13px;color:var(--muted);line-height:1.7;">${p.methodology}</div>
+    <div class="overview-grid">
+      <div class="stat-card"><div class="stat-label">Total Weeks</div><div class="stat-value">${p.total_weeks}</div></div>
+      <div class="stat-card"><div class="stat-label">Days / Week</div><div class="stat-value">${p.days_per_week}</div></div>
+      <div class="stat-card"><div class="stat-label">Deload Weeks</div><div class="stat-value">${deloadWeeks}</div><div class="stat-sub">built in recovery</div></div>
+      <div class="stat-card"><div class="stat-label">Units</div><div class="stat-value">${state.unit.toUpperCase()}</div></div>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);">${p.overview}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;letter-spacing:0.5px;text-transform:uppercase;font-weight:500;">Select Week</div>
+    <div class="week-tabs" id="weekTabs">`;
+
+  p.weeks.forEach((w,i)=>{
+    html += `<div class="week-tab${w.is_deload?' deload':''}${i===0?' active':''}" onclick="showWeek(${i})" id="wt${i}">Wk ${w.week_number}${w.is_deload?' 💤':''}</div>`;
+  });
+  html += `</div><div id="weekContent"></div>`;
+  pc.innerHTML = html;
+  showWeek(0);
+}
+
+function showWeek(idx) {
+  document.querySelectorAll('.week-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  const w = state.program.weeks[idx];
+  let html = '';
+
+  if (w.is_deload) {
+    html += `<div style="background:rgba(71,255,232,0.06);border:1px solid rgba(71,255,232,0.2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--accent2);">
+      <strong>Deload Week</strong> — Reduced volume, lighter loads. Focus on movement quality and recovery. Essential for long-term progress.
+    </div>`;
+  }
+
+  html += `<div style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+    <strong style="color:var(--text);">${w.theme}</strong> · Week ${w.week_number}${w.is_deload?'<span class="deload-badge">DELOAD</span>':''}
+  </div>`;
+
+  // Separate training days from rest/off days
+  const trainingDays = (w.days || []).filter(d => !d.is_rest);
+  const offDayAdvice = w.off_day_advice || 'Active recovery: 20–30 min walk, light stretching, foam rolling, or mobility work. Avoid anything that causes muscle fatigue.';
+
+  // Render each training day
+  trainingDays.forEach((day, di) => {
+    const exercises = day.exercises || [];
+    let totalSets = 0, doneSets = 0;
+    exercises.forEach((ex, exIdx) => {
+      const sets = ex.sets || 3;
+      totalSets += sets;
+      for (let s = 0; s < sets; s++) {
+        if (state.log[`${idx}_${di}_${exIdx}_${s}`]) doneSets++;
+      }
+    });
+    const sessionDone = totalSets > 0 && doneSets === totalSets;
+    const inProgress = doneSets > 0 && !sessionDone;
+    const sessionPct = totalSets > 0 ? Math.round(doneSets/totalSets*100) : 0;
+
+    html += `<div class="day-card" style="${sessionDone?'border-color:rgba(71,255,232,0.35)':''}">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div style="flex:1">
+          <div class="day-title" style="display:flex;align-items:center;gap:8px;">
+            Session ${di+1} · ${day.day_name}
+            ${sessionDone?`<span style="font-size:11px;background:rgba(71,255,232,0.1);border:1px solid rgba(71,255,232,0.3);color:var(--accent2);padding:2px 7px;border-radius:4px;font-weight:500;">✓ Done</span>`:''}
+            ${inProgress?`<span style="font-size:11px;background:rgba(232,255,71,0.08);border:1px solid rgba(232,255,71,0.2);color:var(--accent);padding:2px 7px;border-radius:4px;">${sessionPct}%</span>`:''}
+          </div>
+          <div class="day-type">${day.focus} · ${exercises.length} exercises</div>
+        </div>
+        <div class="day-toggle">⌄</div>
+      </div>
+      <div class="day-body">`;
+
+    exercises.forEach((ex, i) => {
+      const storeIdx = state._exStore ? state._exStore.push(ex)-1 : (state._exStore=[ex], 0);
+      const wn = ex.weight_note || '';
+      const sets = ex.sets || '';
+      const reps = ex.reps || '';
+      const isSwapped = Object.values(state.swaps || {}).some(s => s && s.name === ex.name);
+      html += `<div class="exercise-row">
+        <div class="ex-num">${i+1}</div>
+        <div class="ex-info">
+          <div class="ex-name">${ex.name}${isSwapped?'<span class="swapped-badge">↔ swapped</span>':''}</div>
+          <div class="ex-detail" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+            <span style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:12px;color:var(--text);font-weight:500;">${sets?sets+' sets':''}</span>
+            <span style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:12px;color:var(--text);">${reps?reps+' reps':''}</span>
+            <span style="font-size:12px;color:var(--muted);align-self:center;">Rest: ${ex.rest||'—'}</span>
+            <span style="font-size:12px;color:var(--muted);align-self:center;">${ex.muscles||''}</span>
+          </div>
+        </div>
+        <div class="ex-weight" title="${wn}">${wn.length>20?wn.substring(0,20)+'…':wn}</div>
+        <button class="ex-explain-btn" onclick="openExplainer(state._exStore[${storeIdx}])" title="How to do this">?</button>
+        <button class="ex-explain-btn" onclick="openSwapModal('${ex.name.replace(/'/g,"\\'")}','${(ex.muscles||'').replace(/'/g,"\\'")}','${(day.focus||'').replace(/'/g,"\\'")}',${idx},${di},${i})" title="Swap exercise" style="color:var(--muted);">↔</button>
+      </div>`;
+    });
+
+    html += `<div style="padding:12px 0 4px;">
+      <button class="btn-primary" style="width:100%;font-size:14px;" onclick="openGymMode(${idx},${di})">
+        ${sessionDone?'↺ Redo Session':inProgress?'▶ Continue Session':'▶ Start Session'}
+      </button>
+    </div>`;
+    html += `</div></div>`;
+  });
+
+  // Off day advice block
+  const restCount = (state.program.days_per_week ? 7 - state.program.days_per_week : 3);
+  html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:8px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:18px;">🛌</span>
+      <div>
+        <div style="font-weight:600;font-size:14px;color:var(--text);">Off Days (${restCount} per week — take whenever works for you)</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Flexible — fit around your schedule</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border);padding-top:10px;">${offDayAdvice}</div>
+  </div>`;
+
+  document.getElementById('weekContent').innerHTML = html;
+}
+
+function toggleDay(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.day-toggle');
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+async function openExplainer(ex) {
+  const modal = document.getElementById('explainerModal');
+  const content = document.getElementById('modalContent');
+
+  // Show immediately with loading state
+  content.innerHTML = `
+    <div class="modal-title">${ex.name}</div>
+    <div class="modal-section">
+      <div class="modal-label">Prescription</div>
+      <div class="modal-text">${ex.reps} · Rest ${ex.rest}</div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Weight / Intensity</div>
+      <div class="modal-text">${ex.weight_note}</div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Muscles Worked</div>
+      <div class="modal-text">${ex.muscles}</div>
+    </div>
+    <div id="exDetailLoading" style="color:var(--muted);font-size:13px;padding:16px 0;">Loading coaching cues...</div>
+  `;
+  modal.classList.add('open');
+
+  // Check cache
+  const cacheKey = ex.name;
+  if (state.exCache && state.exCache[cacheKey]) {
+    renderExDetail(content, state.exCache[cacheKey]);
+    return;
+  }
+
+  try {
+    const sys = `You are a certified strength coach. Given an exercise name, return ONLY a JSON object with exactly this structure (no markdown, no extra text):
+{"how_to":["step 1","step 2","step 3","step 4","step 5"],"cues":["cue 1","cue 2","cue 3","cue 4"],"common_mistakes":["mistake 1","mistake 2","mistake 3"]}`;
+    const raw = await callClaude(sys, `Exercise: ${ex.name}\nContext: ${ex.muscles}`, 600);
+    const detail = parseAnyJSON(raw);
+    if (!state.exCache) state.exCache = {};
+    state.exCache[cacheKey] = detail;
+    renderExDetail(content, detail);
+  } catch(e) {
+    document.getElementById('exDetailLoading').innerHTML = `<span style="color:var(--muted)">Could not load details. Check your connection.</span>`;
+  }
+}
+
+function renderExDetail(content, detail) {
+  const loading = document.getElementById('exDetailLoading');
+  if (!loading) return;
+  const how = Array.isArray(detail.how_to) ? detail.how_to : [];
+  const cues = Array.isArray(detail.cues) ? detail.cues : [];
+  const mistakes = Array.isArray(detail.common_mistakes) ? detail.common_mistakes : [];
+  loading.outerHTML = `
+    <div class="modal-section">
+      <div class="modal-label">How To Perform</div>
+      <ul class="cue-list">${how.map((s,i)=>`<li><strong>${i+1}.</strong> ${s}</li>`).join('')}</ul>
+    </div>
+    ${cues.length ? `<div class="modal-section">
+      <div class="modal-label">Coaching Cues</div>
+      <ul class="cue-list">${cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+    </div>` : ''}
+    ${mistakes.length ? `<div class="modal-section">
+      <div class="modal-label">Common Mistakes</div>
+      <ul class="cue-list">${mistakes.map(m=>`<li>${m}</li>`).join('')}</ul>
+    </div>` : ''}
+  `;
+}
+
+// ── Exercise Swap ────────────────────────────────────────────────────────────
+let swapContext = null; // { exName, muscles, focus, weekIdx, dayIdx, exIdx }
+
+async function openSwapModal(exName, muscles, focus, weekIdx, dayIdx, exIdx) {
+  swapContext = { exName, muscles, focus, weekIdx, dayIdx, exIdx };
+  document.getElementById('swapTitle').textContent = `Swap: ${exName}`;
+  document.getElementById('swapSubtitle').textContent = `Targets: ${muscles} · Part of ${focus}`;
+  document.getElementById('swapOptions').innerHTML = `<div style="color:var(--muted);font-size:13px;padding:12px 0;">Finding alternatives...</div>`;
+  document.getElementById('swapCustomInput').value = '';
+  document.getElementById('swapModal').classList.add('open');
+
+  // Fetch alternatives
+  try {
+    const sys = 'You are a strength coach. Return ONLY a JSON array of 5 exercise alternatives. No markdown, no extra text.';
+    const prompt = `Exercise to replace: ${exName}
+Muscles targeted: ${muscles}
+Equipment available: ${state.equipment.join(', ')}
+Reason for swap: user wants an alternative
+Return 5 alternatives as: [{"name":"Exercise Name","reason":"1 sentence why this is a good swap"}]`;
+    const raw = await callClaude(sys, prompt, 500);
+    const alts = parseAnyJSON(raw);
+    if (!Array.isArray(alts)) throw new Error();
+    let html = `<div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Suggested Alternatives</div>`;
+    alts.forEach((alt, i) => {
+      html += `<div onclick="selectSwapAlt(${i})" id="swapAlt_${i}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color 0.15s;">
+        <div style="font-weight:600;font-size:14px;">${alt.name}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;">${alt.reason}</div>
+      </div>`;
+    });
+    document.getElementById('swapOptions').innerHTML = html;
+    document.getElementById('swapOptions')._alts = alts;
+  } catch(e) {
+    document.getElementById('swapOptions').innerHTML = `<div style="color:var(--muted);font-size:13px;">Could not load suggestions. Use the text field below to describe what you want.</div>`;
+  }
+}
+
+let selectedSwapAltIdx = null;
+function selectSwapAlt(idx) {
+  selectedSwapAltIdx = idx;
+  document.querySelectorAll('[id^="swapAlt_"]').forEach((el, i) => {
+    el.style.borderColor = i === idx ? 'var(--accent2)' : 'var(--border)';
+    el.style.background = i === idx ? 'rgba(71,255,232,0.06)' : 'var(--surface2)';
+  });
+  document.getElementById('swapCustomInput').value = '';
+}
+
+async function confirmSwap() {
+  if (!swapContext) return;
+  const customText = document.getElementById('swapCustomInput').value.trim();
+  const alts = document.getElementById('swapOptions')._alts;
+  let newExercise = null;
+
+  if (customText) {
+    // Generate a custom swap from the description
+    const btn = document.querySelector('#swapModal .btn-primary');
+    btn.textContent = 'Finding exercise...';
+    btn.disabled = true;
+    try {
+      const sys = 'You are a strength coach. Return ONLY a JSON object. No markdown, no extra text.';
+      const prompt = `Original exercise: ${swapContext.exName} (targets ${swapContext.muscles})
+User wants: "${customText}"
+Equipment available: ${state.equipment.join(', ')}
+Return the best matching exercise: {"name":"Exercise Name","muscles":"primary muscles","reason":"why this fits"}`;
+      const raw = await callClaude(sys, prompt, 200);
+      const result = parseAnyJSON(raw);
+      newExercise = { name: result.name, muscles: result.muscles || swapContext.muscles };
+    } catch(e) {
+      btn.textContent = 'Apply Swap to All Weeks →';
+      btn.disabled = false;
+      alert('Could not find a match. Try being more specific.');
+      return;
+    }
+  } else if (selectedSwapAltIdx !== null && alts && alts[selectedSwapAltIdx]) {
+    const alt = alts[selectedSwapAltIdx];
+    newExercise = { name: alt.name, muscles: swapContext.muscles };
+  } else {
+    alert('Please select an alternative or describe what you want.');
+    return;
+  }
+
+  // Apply swap across ALL weeks — replace every instance of this exercise name
+  const originalName = swapContext.exName;
+  state.program.weeks.forEach(wk => {
+    (wk.days || []).forEach(day => {
+      (day.exercises || []).forEach(ex => {
+        if (ex.name === originalName) {
+          ex.name = newExercise.name;
+          ex.muscles = newExercise.muscles || ex.muscles;
+        }
+      });
+    });
+  });
+
+  // Also clear any log entries for the original exercise (they no longer apply)
+  // Log keys are positional so they stay valid — no need to clear
+
+  saveToStorage();
+  closeSwapModal();
+  // Re-render current week
+  const activeTab = document.querySelector('.week-tab.active');
+  if (activeTab) {
+    const tabs = document.querySelectorAll('.week-tab');
+    tabs.forEach((t,i) => { if (t.classList.contains('active')) showWeek(i); });
+  }
+}
+
+function closeSwapModal() {
+  document.getElementById('swapModal').classList.remove('open');
+  swapContext = null;
+  selectedSwapAltIdx = null;
+  const btn = document.querySelector('#swapModal .btn-primary');
+  if (btn) { btn.textContent = 'Apply Swap to All Weeks →'; btn.disabled = false; }
+}
+
+document.getElementById('swapModal').addEventListener('click', function(e){
+  if (e.target === this) closeSwapModal();
+});
+
+function closeModal() {
+  document.getElementById('explainerModal').classList.remove('open');
+}
+
+document.getElementById('explainerModal').addEventListener('click', function(e){
+  if(e.target === this) closeModal();
+});
+
+function resetApp() {
+  confirmReset();
+}
+
+// Boot on load
+boot();
+</script>
+</body>
+</html>
