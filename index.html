@@ -2,8 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>FORGE — AI Program Builder</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FORGE">
+<meta name="theme-color" content="#0d0d0f">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%20%22FORGE%20%5Cu2014%20AI%20Program%20Builder%22%2C%20%22short_name%22%3A%20%22FORGE%22%2C%20%22start_url%22%3A%20%22.%22%2C%20%22display%22%3A%20%22standalone%22%2C%20%22background_color%22%3A%20%22%230d0d0f%22%2C%20%22theme_color%22%3A%20%22%230d0d0f%22%2C%20%22icons%22%3A%20%5B%7B%22src%22%3A%20%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzBkMGQwZiIvPgogIDxyZWN0IHg9Ijg4IiB5PSIzMDIiIHdpZHRoPSIzMzYiIGhlaWdodD0iMTEyIiByeD0iMTgiIGZpbGw9IiNlOGZmNDciLz4KICA8cG9seWdvbiBwb2ludHM9Ijg4LDMwMiAyMDQsMzAyIDEzMiwyMzAiIGZpbGw9IiNlOGZmNDciLz4KICA8cmVjdCB4PSIxMjIiIHk9IjIxNCIgd2lkdGg9IjMwMiIgaGVpZ2h0PSI5MCIgcng9IjE1IiBmaWxsPSIjZThmZjQ3Ii8%2BCiAgPHBvbHlnb24gcG9pbnRzPSIzMjIsNTYgMjcwLDIwOCAzMDYsMjA4IDI1MCwzNjIgMzc4LDE3OCAzMzYsMTc4IDM4OCw1NiIgZmlsbD0iIzBkMGQwZiIvPgo8L3N2Zz4%3D%22%2C%20%22sizes%22%3A%20%22512x512%22%2C%20%22type%22%3A%20%22image%2Fsvg%2Bxml%22%7D%2C%20%7B%22src%22%3A%20%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzBkMGQwZiIvPgogIDxyZWN0IHg9Ijg4IiB5PSIzMDIiIHdpZHRoPSIzMzYiIGhlaWdodD0iMTEyIiByeD0iMTgiIGZpbGw9IiNlOGZmNDciLz4KICA8cG9seWdvbiBwb2ludHM9Ijg4LDMwMiAyMDQsMzAyIDEzMiwyMzAiIGZpbGw9IiNlOGZmNDciLz4KICA8cmVjdCB4PSIxMjIiIHk9IjIxNCIgd2lkdGg9IjMwMiIgaGVpZ2h0PSI5MCIgcng9IjE1IiBmaWxsPSIjZThmZjQ3Ii8%2BCiAgPHBvbHlnb24gcG9pbnRzPSIzMjIsNTYgMjcwLDIwOCAzMDYsMjA4IDI1MCwzNjIgMzc4LDE3OCAzMzYsMTc4IDM4OCw1NiIgZmlsbD0iIzBkMGQwZiIvPgo8L3N2Zz4%3D%22%2C%20%22sizes%22%3A%20%22192x192%22%2C%20%22type%22%3A%20%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzBkMGQwZiIvPgogIDxyZWN0IHg9Ijg4IiB5PSIzMDIiIHdpZHRoPSIzMzYiIGhlaWdodD0iMTEyIiByeD0iMTgiIGZpbGw9IiNlOGZmNDciLz4KICA8cG9seWdvbiBwb2ludHM9Ijg4LDMwMiAyMDQsMzAyIDEzMiwyMzAiIGZpbGw9IiNlOGZmNDciLz4KICA8cmVjdCB4PSIxMjIiIHk9IjIxNCIgd2lkdGg9IjMwMiIgaGVpZ2h0PSI5MCIgcng9IjE1IiBmaWxsPSIjZThmZjQ3Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSIzMjIsNTYgMjcwLDIwOCAzMDYsMjA4IDI1MCwzNjIgMzc4LDE3OCAzMzYsMTc4IDM4OCw1NiIgZmlsbD0iIzBkMGQwZiIvPgo8L3N2Zz4=">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -946,6 +953,8 @@
       <button class="timer-skip" onclick="skipTimer()">Skip ✕</button>
     </div>
   </div>
+  <!-- Hidden file input for import -->
+  <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="handleImportFile(event)">
 </div>
 
 <script>
@@ -1022,6 +1031,7 @@ function showResume(saved) {
       <div style="display:flex;flex-wrap:wrap;gap:8px;">
         <button class="btn-primary" style="flex:1;min-width:140px" onclick="resumeProgram()">Resume My Program →</button>
         <button class="btn-ghost" onclick="confirmReset()">Start Over</button>
+        <button class="btn-ghost" onclick="triggerImport()" style="font-size:12px;">⬆ Import Backup</button>
       </div>
     </div>`;
   // Insert resume banner above step 0 content
@@ -1676,6 +1686,7 @@ function renderProgram(p) {
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn-ghost" onclick="openUpdateMaxes()" style="font-size:12px">✏ Update Maxes</button>
+        <button class="btn-ghost" onclick="exportProgram()" style="font-size:12px">⬇ Export</button>
         <button class="btn-ghost" onclick="confirmReset()">↺ Rebuild</button>
       </div>
     </div>`;
@@ -1999,6 +2010,80 @@ document.getElementById('explainerModal').addEventListener('click', function(e){
 
 function resetApp() {
   confirmReset();
+}
+
+// ── Export / Import ──────────────────────────────────────────────────────────
+
+function exportProgram() {
+  const saved = loadFromStorage();
+  if (!saved || !saved.program) {
+    alert('No program to export yet.');
+    return;
+  }
+  const blob = new Blob([JSON.stringify(saved, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const programName = (saved.program.program_name || 'forge-program').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  a.href = url;
+  a.download = `${programName}-backup.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function triggerImport() {
+  document.getElementById('importFileInput').click();
+}
+
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.program || !data.program.weeks) {
+        showImportError('Invalid backup file — missing program data.');
+        return;
+      }
+      // Restore everything from the backup
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      state.program = data.program;
+      state.orms = data.orms || {};
+      state.coreLifts = data.coreLifts || [];
+      state.log = data.log || {};
+      state.swaps = data.swaps || {};
+      if (data.meta) Object.assign(state, data.meta);
+      // Remove existing banner if any and re-show resume screen
+      const existing = document.getElementById('resumeBanner');
+      if (existing) existing.remove();
+      showResume(data);
+      // Flash confirmation
+      const banner = document.getElementById('resumeBanner');
+      if (banner) {
+        banner.style.borderColor = 'rgba(71,255,232,0.5)';
+        setTimeout(() => { if (banner) banner.style.borderColor = ''; }, 2000);
+      }
+    } catch(err) {
+      showImportError('Could not read file — make sure it\'s a valid FORGE backup.');
+    }
+    // Reset input so same file can be re-imported if needed
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function showImportError(msg) {
+  const step0 = document.getElementById('step0');
+  const existing = document.getElementById('importError');
+  if (existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'importError';
+  div.style.cssText = 'background:rgba(255,71,71,0.1);border:1px solid rgba(255,71,71,0.3);border-radius:8px;padding:12px 14px;font-size:13px;color:#ff4747;margin-bottom:12px;';
+  div.textContent = msg;
+  step0.insertBefore(div, step0.firstChild);
+  setTimeout(() => { if (div.parentNode) div.remove(); }, 4000);
 }
 
 // Boot on load
