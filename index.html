@@ -600,10 +600,13 @@
 <body>
 <div class="app">
   <div class="header">
-    <div>
+    <div style="flex:1;">
       <div class="logo">FORGE</div>
       <div class="tagline">AI-Powered Training Programs</div>
     </div>
+    <button id="apiKeyBtn" onclick="promptApiKey()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;">
+      <span id="apiKeyStatus">⚠ No Key</span>
+    </button>
   </div>
 
   <div class="steps" id="stepBar">
@@ -891,6 +894,25 @@
   <!-- STEP 7: Program -->
   <div class="section" id="step7">
     <div id="programContent"></div>
+  </div>
+
+  <!-- API KEY MODAL -->
+  <div class="modal-overlay" id="apiKeyModal">
+    <div class="modal" style="position:relative;max-height:unset;padding:32px 28px;">
+      <div class="modal-title">API Key Required</div>
+      <div style="font-size:14px;color:var(--muted);margin-bottom:6px;line-height:1.6;">FORGE uses the Anthropic API to build your program. You need a free API key to continue.</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+        Get one free at <a href="https://console.anthropic.com" style="color:var(--accent);text-decoration:none;">console.anthropic.com</a> → API Keys → Create Key.
+      </div>
+      <div class="field">
+        <label>Anthropic API Key</label>
+        <input type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off" style="font-family:monospace;letter-spacing:1px;">
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">Your key is saved only on this device and never sent anywhere except Anthropic's API.</div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-primary" onclick="saveApiKey()" style="flex:1;">Save & Continue</button>
+      </div>
+    </div>
   </div>
 
   <!-- CONFIRM RESET MODAL -->
@@ -1320,11 +1342,17 @@ function toggleFocus(el) {
 }
 
 async function callClaude(system, userMsg, maxTokens) {
+  const key = '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';
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-request-allow-origins': '*'
+    },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5-20251001',
       max_tokens: maxTokens || 4000,
       system: system,
       messages: [{role:'user', content: userMsg}]
@@ -1332,6 +1360,10 @@ async function callClaude(system, userMsg, maxTokens) {
   });
   if (!resp.ok) {
     const err = await resp.json().catch(()=>({}));
+    if (resp.status === 401) {
+      promptApiKey('Invalid API key — please check and re-enter.');
+      throw new Error('Invalid API key.');
+    }
     throw new Error(err.error?.message || `API error ${resp.status}`);
   }
   const data = await resp.json();
@@ -2012,6 +2044,46 @@ function resetApp() {
   confirmReset();
 }
 
+// ── API Key ──────────────────────────────────────────────────────────────────
+
+function promptApiKey(msg) {
+  if (msg) {
+    const field = document.getElementById('apiKeyInput');
+    if (field) { field.style.borderColor = 'rgba(255,71,71,0.5)'; field.placeholder = msg; field.value = ''; }
+  }
+  document.getElementById('apiKeyModal').classList.add('open');
+}
+
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val.startsWith('sk-ant-')) {
+    const field = document.getElementById('apiKeyInput');
+    field.style.borderColor = 'rgba(255,71,71,0.5)';
+    field.placeholder = 'Key should start with sk-ant-...';
+    field.value = '';
+    return;
+  }
+  localStorage.setItem('forge_api_key', val);
+  document.getElementById('apiKeyModal').classList.remove('open');
+  updateApiKeyStatus();
+}
+
+function updateApiKeyStatus() {
+  const key = localStorage.getItem('forge_api_key');
+  const btn = document.getElementById('apiKeyBtn');
+  const status = document.getElementById('apiKeyStatus');
+  if (!btn || !status) return;
+  if (key) {
+    status.textContent = '✓ Key Set';
+    btn.style.borderColor = 'rgba(232,255,71,0.3)';
+    btn.style.color = 'var(--accent)';
+  } else {
+    status.textContent = '⚠ No Key';
+    btn.style.borderColor = 'rgba(255,71,71,0.3)';
+    btn.style.color = '#ff4747';
+  }
+}
+
 // ── Export / Import ──────────────────────────────────────────────────────────
 
 function exportProgram() {
@@ -2088,6 +2160,7 @@ function showImportError(msg) {
 
 // Boot on load
 boot();
+updateApiKeyStatus();
 </script>
 </body>
 </html>
