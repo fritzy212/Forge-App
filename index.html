@@ -1342,7 +1342,11 @@ function toggleFocus(el) {
 }
 
 async function callClaude(system, userMsg, maxTokens) {
-  const key = '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';
+  const key = localStorage.getItem('forge_api_key');
+  if (!key) {
+    promptApiKey();
+    throw new Error('No API key set. Please enter your Anthropic API key.');
+  }
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
